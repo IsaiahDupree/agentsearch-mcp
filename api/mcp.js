@@ -11,8 +11,18 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { registerTools } from '../lib/tools.js';
 import { clientIp, checkAndConsume } from '../lib/ratelimit.js';
+import { authorizeBudget } from '../lib/budget.js';
 
 export default async function handler(req, res) {
+  // Native MCP clients usually omit Origin. In budgeted mode reject browser
+  // origins unless explicitly allowlisted by the operator.
+  if (process.env.AGENTSEARCH_MCP_ACCESS_MODE === 'budgeted' && req.headers?.origin) {
+    const allowed = (process.env.AGENTSEARCH_MCP_ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!allowed.includes(req.headers.origin)) {
+      return res.status(403).json({ jsonrpc: '2.0', id: null,
+        error: { code: -32000, message: 'origin_denied' } });
+    }
+  }
   // Streamable-HTTP stateless servers only accept POST; GET/SSE-resume and
   // DELETE/session-teardown don't apply since there is no session state.
   if (req.method === 'GET' || req.method === 'DELETE') {
@@ -33,6 +43,13 @@ export default async function handler(req, res) {
   // Only tools/call actually reaches the metered upstream (initialize/tools/list
   // are free protocol handshake) — see lib/ratelimit.js for why this exists.
   if (req.body?.method === 'tools/call') {
+    const budget = await authorizeBudget(req);
+    if (!budget.allowed) {
+      return res.status(budget.status).json({
+        jsonrpc: '2.0', id: req.body?.id ?? null,
+        error: { code: -32000, message: budget.code },
+      });
+    }
     const { allowed, limit } = checkAndConsume(clientIp(req));
     if (!allowed) {
       return res.status(200).json({
@@ -68,3 +85,4 @@ export default async function handler(req, res) {
     }
   }
 }
+
