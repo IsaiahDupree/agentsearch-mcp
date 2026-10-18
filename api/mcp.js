@@ -16,11 +16,11 @@ import { clientIp, checkAndConsume } from '../lib/ratelimit.js';
 import { authorizeBudget } from '../lib/budget.js';
 
 export default async function handler(req, res) {
-  // The SDK accepts JSON-RPC batches. The outer per-request gates cannot meter
-  // entries in a batch, so reject arrays before creating the transport.
-  if (Array.isArray(req.body)) {
+  // The SDK can parse raw streams and accept batches. Require the adapter's
+  // parsed single object so no transport fallback can skip the outer gates.
+  if (req.method === 'POST' && (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))) {
     return res.status(400).json({ jsonrpc: '2.0', id: null,
-      error: { code: -32600, message: 'Batch requests are not supported' } });
+      error: { code: -32600, message: 'Parsed single JSON-RPC object required; batches are not supported' } });
   }
   // Native MCP clients usually omit Origin. In budgeted mode reject browser
   // origins unless explicitly allowlisted by the operator.

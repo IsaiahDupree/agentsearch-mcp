@@ -29,8 +29,10 @@ test('real HTTP MCP handler rejects unauthorized/exhausted calls before upstream
   const server=http.createServer(async(req,res)=>{
     res.status=code=>{res.statusCode=code;return res;};
     res.json=obj=>{res.setHeader('content-type','application/json');res.end(JSON.stringify(obj));};
-    let body=''; for await(const chunk of req)body+=chunk;
-    req.body=body?JSON.parse(body):undefined;
+    if (req.headers['x-test-unparsed'] !== '1') {
+      let body=''; for await(const chunk of req)body+=chunk;
+      req.body=body?JSON.parse(body):undefined;
+    }
     await handler(req,res);
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -48,6 +50,9 @@ test('real HTTP MCP handler rejects unauthorized/exhausted calls before upstream
     assert.equal(reservations,0); assert.equal(upstream,0);
     assert.equal((await rpc('tools/call',undefined,{},true)).status,400);
     assert.equal((await rpc('tools/call',token,{},true)).status,400);
+    assert.equal((await rpc('tools/call',undefined,{'x-test-unparsed':'1'})).status,400);
+    assert.equal((await rpc('tools/call',token,{'x-test-unparsed':'1'})).status,400);
+    assert.equal((await rpc('tools/call',token,{'x-test-unparsed':'1'},true)).status,400);
     assert.equal((await rpc('tools/call',token,{origin:'https://unapproved.example'})).status,403);
     assert.equal(reservations,0); assert.equal(upstream,0);
     assert.equal((await rpc('tools/call')).status,401);
