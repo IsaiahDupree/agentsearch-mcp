@@ -1,7 +1,9 @@
-// api/mcp.js — the MCP endpoint. AgentSearch's data (web SERP results, DuckDuckGo
+// api/mcp.js — the MCP endpoint. Default discovery mode is public; optional
+// budgeted mode authenticates calls and reserves shared quota. AgentSearch data
+// (web SERP results, DuckDuckGo
 // instant answers, cleaned URL text/markdown) is fully public and carries no
 // per-user state, so this connector deliberately has NO auth, NO sessions, NO
-// Supabase, NO billing, NO demo-vs-real split: every caller gets the same real,
+// Supabase, NO billing, NO demo-vs-real split in default discovery mode:
 // live data. See README.md for the full rationale.
 //
 // Stateless streamable-HTTP MCP server, one instance per request (no session
@@ -11,8 +13,24 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { registerTools } from '../lib/tools.js';
 import { clientIp, checkAndConsume } from '../lib/ratelimit.js';
+import { authorizeBudget } from '../lib/budget.js';
 
 export default async function handler(req, res) {
+  // The SDK can parse raw streams and accept batches. Require the adapter's
+  // parsed single object so no transport fallback can skip the outer gates.
+  if (req.method === 'POST' && (!req.body || typeof req.body !== 'object' || Array.isArray(req.body))) {
+    return res.status(400).json({ jsonrpc: '2.0', id: null,
+      error: { code: -32600, message: 'Parsed single JSON-RPC object required; batches are not supported' } });
+  }
+  // Native MCP clients usually omit Origin. In budgeted mode reject browser
+  // origins unless explicitly allowlisted by the operator.
+  if (process.env.AGENTSEARCH_MCP_ACCESS_MODE === 'budgeted' && req.headers?.origin) {
+    const allowed = (process.env.AGENTSEARCH_MCP_ALLOWED_ORIGINS || '').split(',').map(x => x.trim()).filter(Boolean);
+    if (!allowed.includes(req.headers.origin)) {
+      return res.status(403).json({ jsonrpc: '2.0', id: null,
+        error: { code: -32000, message: 'origin_denied' } });
+    }
+  }
   // Streamable-HTTP stateless servers only accept POST; GET/SSE-resume and
   // DELETE/session-teardown don't apply since there is no session state.
   if (req.method === 'GET' || req.method === 'DELETE') {
@@ -33,6 +51,13 @@ export default async function handler(req, res) {
   // Only tools/call actually reaches the metered upstream (initialize/tools/list
   // are free protocol handshake) — see lib/ratelimit.js for why this exists.
   if (req.body?.method === 'tools/call') {
+    const budget = await authorizeBudget(req);
+    if (!budget.allowed) {
+      return res.status(budget.status).json({
+        jsonrpc: '2.0', id: req.body?.id ?? null,
+        error: { code: -32000, message: budget.code },
+      });
+    }
     const { allowed, limit } = checkAndConsume(clientIp(req));
     if (!allowed) {
       return res.status(200).json({
@@ -68,3 +93,4 @@ export default async function handler(req, res) {
     }
   }
 }
+

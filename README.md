@@ -16,7 +16,22 @@ AgentSearch API is a plain REST API. Any HTTP client can already call it directl
 
 This connector is a **free discovery/growth tier** in front of the metered AgentSearch API. The upstream (`agentsearch-api.vercel.app`) is sold on RapidAPI/Apify; this MCP wrapper authenticates to it with the shared RapidAPI proxy secret and caps usage per-IP so it stays a taste-test rather than an unmetered path around the paid plans. Heavy/production volume should go through [AgentSearch on RapidAPI/Apify](https://agentsearch-api.vercel.app).
 
-## Authentication: None on the MCP side (deliberate)
+## Optional budgeted access for marketplace deployments
+
+The default discovery endpoint below remains unauthenticated. Do not market it
+as included hosted marketplace service: its per-IP limiter is not an aggregate
+spending cap. A separate deployment can enable authenticated, fixed-lifetime
+quota enforcement with `AGENTSEARCH_MCP_ACCESS_MODE=budgeted`; see
+[configuration and release checks](docs/agensi/budgeted-deployment.md).
+Missing, expiring, exhausted, or unavailable shared counters fail closed.
+JSON-RPC batches are rejected before the SDK so they cannot bypass call gates.
+This source change does not configure or deploy that mode.
+
+The original skill and ZIP are maintained privately; this repository contains
+the [listing draft and release assessment](docs/agensi/release-assessment.md).
+No listing has been submitted or published.
+
+## Default discovery authentication: None (deliberate)
 
 AgentSearch's data has no per-user dimension — it's public web data (SERP results, DuckDuckGo instant answers, cleaned page text). There is nothing to gate per-caller, so this connector intentionally ships with:
 
@@ -84,3 +99,4 @@ export AGENTSEARCH_MCP_PROXY_SECRET=<the RapidAPI proxy secret>
 npm run dev &
 npm run smoke
 ```
+

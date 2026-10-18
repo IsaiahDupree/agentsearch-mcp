@@ -1,0 +1,146 @@
+{
+  "endpoint": "https://agentsearch-mcp.vercel.app",
+  "records": [
+    {
+      "started": "2026-10-18T18:15:01.189Z",
+      "method": "initialize",
+      "params": {
+        "protocolVersion": "2025-06-18",
+        "capabilities": {},
+        "clientInfo": {
+          "name": "agensi-preflight",
+          "version": "0.1.0"
+        }
+      },
+      "http": 200,
+      "body": {
+        "protocol_ok": true
+      }
+    },
+    {
+      "started": "2026-10-18T18:15:05.644Z",
+      "method": "tools/list",
+      "params": {},
+      "http": 200,
+      "body": {
+        "protocol_ok": true
+      }
+    },
+    {
+      "started": "2026-10-18T18:15:05.834Z",
+      "method": "tools/call",
+      "params": {
+        "name": "instant_answer",
+        "arguments": {
+          "q": "Model Context Protocol"
+        }
+      },
+      "http": 200,
+      "body": {
+        "result": {
+          "meta": {
+            "cached": false,
+            "stale": false,
+            "as_of": "2026-10-18T18:15:07.562Z",
+            "source": "duckduckgo-instant-answer",
+            "provider": null,
+            "took_ms": 1493
+          },
+          "query": "Model Context Protocol",
+          "heading": "What is the Model Context Protocol (MCP)? - Model Context Protocol",
+          "type": "web",
+          "source": "modelcontextprotocol.io",
+          "sourceUrl": "https://modelcontextprotocol.io/docs/2026-07-28/getting-started/intro",
+          "image": null,
+          "definition": null,
+          "answer_character_count": 248
+        }
+      }
+    },
+    {
+      "started": "2026-10-18T18:15:07.630Z",
+      "method": "tools/call",
+      "params": {
+        "name": "web_search",
+        "arguments": {
+          "q": "site:modelcontextprotocol.io streamable HTTP transport specification",
+          "limit": 3
+        }
+      },
+      "http": 200,
+      "body": {
+        "result": {
+          "meta": {
+            "cached": false,
+            "stale": false,
+            "as_of": "2026-10-18T18:15:11.340Z",
+            "source": "web-search",
+            "provider": "brave",
+            "took_ms": 425
+          },
+          "query": "site:modelcontextprotocol.io streamable HTTP transport specification",
+          "count": 3,
+          "results": [
+            {
+              "position": 1,
+              "title": "Streamable HTTP - Model Context Protocol",
+              "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/transports/streamable-http",
+              "source": "brave",
+              "domain": "modelcontextprotocol.io",
+              "published": "2026-10-13T19:11:50"
+            },
+            {
+              "position": 2,
+              "title": "StreamableHttpClientTransport",
+              "url": "https://kotlin.sdk.modelcontextprotocol.io/kotlin-sdk-client/io.modelcontextprotocol.kotlin.sdk.client/-streamable-http-client-transport/index.html",
+              "source": "brave",
+              "domain": "kotlin.sdk.modelcontextprotocol.io",
+              "published": null
+            },
+            {
+              "position": 3,
+              "title": "client/streamableHttp | MCP TypeScript SDK",
+              "url": "https://ts.sdk.modelcontextprotocol.io/v2/api/@modelcontextprotocol/client/client/streamableHttp.html",
+              "source": "brave",
+              "domain": "ts.sdk.modelcontextprotocol.io",
+              "published": null
+            }
+          ]
+        }
+      }
+    },
+    {
+      "started": "2026-10-18T18:15:11.394Z",
+      "method": "tools/call",
+      "params": {
+        "name": "fetch_url",
+        "arguments": {
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports",
+          "format": "markdown",
+          "maxChars": 6000,
+          "links": false
+        }
+      },
+      "http": 200,
+      "body": {
+        "result": {
+          "meta": {
+            "cached": false,
+            "stale": false,
+            "as_of": "2026-10-18T18:15:14.902Z",
+            "source": "fetch",
+            "provider": null,
+            "took_ms": 174
+          },
+          "url": "https://modelcontextprotocol.io/specification/2025-06-18/basic/transports",
+          "title": "Transports - Model Context Protocol",
+          "format": "markdown",
+          "length": 6000,
+          "extracted_character_count": 6000,
+          "content_note": "Page content omitted from receipt; extraction truncated at requested 6000 characters."
+        }
+      }
+    }
+  ],
+  "billing": "Not available; three tools/call attempts, no retries. One search invocation can involve upstream retries or answer fallback."
+}

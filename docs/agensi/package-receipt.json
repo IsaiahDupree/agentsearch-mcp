@@ -1,0 +1,33 @@
+{
+  "asset": "agentsearch-implementation-brief",
+  "version": "0.1.0",
+  "files": 9,
+  "archive_bytes": 10202,
+  "sha256": "37d550208e3ed08eb2d0cd9624009bca8935f60eaea1b684ff09048a56afc3f3",
+  "entries": [
+    "RIGHTS.txt",
+    "SKILL.md",
+    "agents/openai.yaml",
+    "assets/brief-template.md",
+    "references/connection.md",
+    "references/examples.md",
+    "references/handoff-schema.md",
+    "references/tools-and-evidence.md",
+    "scripts/validate_brief.py"
+  ],
+  "frontmatter": "passed",
+  "python_validator_tests": 8,
+  "server_tests": 10,
+  "live_tool_calls": 3,
+  "independent_workflow_tasks": 2,
+  "marketplace_scan": "not_run",
+  "publication_status": "not_submitted",
+  "not_verified": [
+    "actual billing charges",
+    "Agensi creator resource preview",
+    "real Redis quota certification",
+    "all-agent compatibility",
+    "production budget deployment",
+    "upstream DNS/redirect SSRF repair"
+  ]
+}
