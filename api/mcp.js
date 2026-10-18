@@ -1,7 +1,9 @@
-// api/mcp.js — the MCP endpoint. AgentSearch's data (web SERP results, DuckDuckGo
+// api/mcp.js — the MCP endpoint. Default discovery mode is public; optional
+// budgeted mode authenticates calls and reserves shared quota. AgentSearch data
+// (web SERP results, DuckDuckGo
 // instant answers, cleaned URL text/markdown) is fully public and carries no
 // per-user state, so this connector deliberately has NO auth, NO sessions, NO
-// Supabase, NO billing, NO demo-vs-real split: every caller gets the same real,
+// Supabase, NO billing, NO demo-vs-real split in default discovery mode:
 // live data. See README.md for the full rationale.
 //
 // Stateless streamable-HTTP MCP server, one instance per request (no session
@@ -14,6 +16,12 @@ import { clientIp, checkAndConsume } from '../lib/ratelimit.js';
 import { authorizeBudget } from '../lib/budget.js';
 
 export default async function handler(req, res) {
+  // The SDK accepts JSON-RPC batches. The outer per-request gates cannot meter
+  // entries in a batch, so reject arrays before creating the transport.
+  if (Array.isArray(req.body)) {
+    return res.status(400).json({ jsonrpc: '2.0', id: null,
+      error: { code: -32600, message: 'Batch requests are not supported' } });
+  }
   // Native MCP clients usually omit Origin. In budgeted mode reject browser
   // origins unless explicitly allowlisted by the operator.
   if (process.env.AGENTSEARCH_MCP_ACCESS_MODE === 'budgeted' && req.headers?.origin) {
