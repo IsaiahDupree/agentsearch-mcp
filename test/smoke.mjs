@@ -17,7 +17,10 @@
 // and treats a guard-induced tools/call error as a soft warning rather than a
 // failure.
 
-const BASE = process.env.SMOKE_BASE_URL || 'http://localhost:3900';
+const BASE = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:3900';
+const TOKEN = process.env.AGENTSEARCH_MCP_CLIENT_TOKEN || '';
+if (Buffer.byteLength(TOKEN, 'utf8') < 32) throw new Error('AGENTSEARCH_MCP_CLIENT_TOKEN is required.');
+if (process.env.SMOKE_ALLOW_REAL_LOOKUP !== '1') throw new Error('This test makes a real lookup; set SMOKE_ALLOW_REAL_LOOKUP=1 only for an explicitly authorized workload.');
 
 let idCounter = 1;
 async function rpc(method, params) {
@@ -27,6 +30,7 @@ async function rpc(method, params) {
     headers: {
       'content-type': 'application/json',
       accept: 'application/json, text/event-stream',
+      authorization: `Bearer ${TOKEN}`,
     },
     body: JSON.stringify(body),
   });
